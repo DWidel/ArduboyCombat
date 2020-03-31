@@ -10,8 +10,9 @@
 class Machine
 {
 
-public:
-
+public: 
+const unsigned char TankXposStart0=0x08;
+const unsigned char TankXposStart1=0x90;
 
 unsigned char Gray=0;
 const short FRAME_RATE = 30; 
@@ -294,7 +295,7 @@ Arduboy2Base arduboy;
 
 
       void GetNuSizeInfo(char n, char& Count, unsigned short& Space, unsigned char& Len, char& MissSize);
-      void TankStart();
+    
 
 
 };

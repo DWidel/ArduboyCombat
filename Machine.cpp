@@ -583,7 +583,7 @@ if (Addr >= 0xF5C5 && Addr < 0xF64F)  {
      // VBlankWait(); //wait for a bit.
      if (!Skip) SameFrame=false; 
     FrameCnt++;
-    Skip = ((FrameCnt % FrameSkip)== 0);
+    Skip = ((FrameCnt % FrameSkip)!= 0);
     
          //Clear sprites from frames not displayed.
          PQ0.Clear();
@@ -631,11 +631,7 @@ if (Addr >= 0xF5C5 && Addr < 0xF64F)  {
 
   };
 
-
- void Machine::TankStart(){ 
-       TankX[0]=0x08;
-       TankX[1]=0x90;
- };
+ 
 
 //NoBkGrnd flag is because the playfield can be the bottom layer or the top layer.
   void Machine::DrawPlayField(bool NoBkGrnd) {
@@ -779,7 +775,7 @@ if (Addr >= 0xF5C5 && Addr < 0xF64F)  {
  
 
         if (!NoBkGrnd || (Mask & Data)) {
-          put_HLine(col * BlkSize, BlkSize, YPos, Col); 
+          put_HLine(col * BlkSize, BlkSize, YPos, WHITE); 
         };
         //SDL_UpdateWindowSurface(window);
 
@@ -1132,15 +1128,13 @@ if (YCtr == 0) YPos = 0;
 //START
       if ( BPressed && LastBPressed && APressed  ){
        ClrBit(SwitchBRegister, 0x1); 
-       TankStart();
      }else{
        SetBit(SwitchBRegister, 0x1);
      };
      
 //SELECT
       if ( BPressed && LastBPressed &&  UpPressed  ){
-       ClrBit(SwitchBRegister, 0x2); 
-       TankStart();
+       ClrBit(SwitchBRegister, 0x2);  
      }else{
        SetBit(SwitchBRegister, 0x2);
      };
@@ -2690,6 +2684,9 @@ switch (PC) {
     M=ReadByte(0x85);   //GAMSHP
     M++;if (M>0xFF) M=M & 0xFF;
     WriteByte(0x85,M);
+
+
+ ///////////////////////////////////////////////////////////////////////////////Reset Playfield //////////////   
   case 0xF1D0:  //0xF1C8, 0xF1CC, 0xF1CE, 0xF16E, 
     //F1D0: JSR $F525   ; 6  ;20 25 F5 
 
@@ -2717,13 +2714,19 @@ switch (PC) {
     fZero = ((M & A)==0);
     //F1DD: BMI $F1F1   ; 3  ;30 12 
 
-    if (fNeg) {PC=0XF1F1;break;};
-    //F1DF: STA $A5    ; 3  ;85 A5 
+    if (fNeg) {PC=0XF1F1;
+                  break;};
 
+    
+    //Is Tank Game. 
+    //F1DF: STA $A5    ; 3  ;85 A5 
     WriteByte(0xA5,A);   //TankY1
+    
+    
     //F1E1: STA $11    ; 3  ;85 11 
 
     ResetPlayer(1,DurationCtr);    // reset player 1
+     TankX[1]=TankXposStart1;
     //F1E3: LDA #$08    ; 2  ;A9 08 
 
     A=0x08;
@@ -4585,11 +4588,13 @@ opcADC(ReadByte(0xD2));
 
     A=ReadByte(0xF7CC + X);
     //F563: STA $10    ; 3  ;85 10 
-
     ResetPlayer(0,DurationCtr);    // reset player 0
-    //F565: STA $B5    ; 3  ;85 B5 
+    TankX[0]=TankXposStart0;
 
+    
+    //F565: STA $B5    ; 3  ;85 B5  
     WriteByte(0xB5,A);   //LORES0
+    
     //F567: LDA $F7D0,X    ; 4  ;BD D0 F7 
 
     A=ReadByte(0xF7D0 + X);
@@ -4608,6 +4613,8 @@ opcADC(ReadByte(0xD2));
 
     PC=ReadStackWord();
     break;
+
+    
   case 0xF572:  //0xF01A, 
     //F572: LDA $A3    ; 3  ;A5 A3 
 
