@@ -272,33 +272,7 @@ if (Addr >= 0xF5C5 && Addr < 0xF64F)  {
 
 
   void  Machine::WriteVBlank(unsigned char B) { 
-  /*  Vblank
-      This address controls vertical blankand the latchesand dumping transistors
-      on the input ports by writing into bits D7, D6, and D1 of the Vblank register.
-      D1 - 1: start vertical blank
-      0 : stop vertical blank
-      D6 - 1 : enable I4 and I5 latches
-      0 : disable latches - also resets latches to logic true
-      D7 - 1 : Dump I0, I1, I2, I3 ports to ground
-      0 : Remove dump path to ground
-      
-      
-      
-      You must turn on VBLANK *before* you turn on VSYNC. The "Stella Programmer's Guide" suggests that you send 30 blanked lines (at the *bottom* of the screen), then 3 lines of VSYNC (which should also be blanked), then 37 more blanked lines, then 192 lines for the game screen.
- So the sequence would be as follows:
- 
-(1) Turn on VBLANK.
-(2) Wait for 30 lines (usually by setting the timer so you can be doing other things instead of just counting scan lines).
-(3) Turn on VSYNC.
-(4) Wait for 3 lines.
-(5) Turn off VSYNC.
-(6) Wait for 37 lines (usually by setting the timer).
-(6) Turn off VBLANK.
-(7) Draw your game screen for 192 lines.
-(8) Loop back to (1).
-
- */
-
+  
      YCtr = 0;
     if ((B &2) == 0) {
       //Trailing edge of VBlank
@@ -665,15 +639,7 @@ if (Addr >= 0xF5C5 && Addr < 0xF64F)  {
 
 
   void Machine::DrawMissle() {
-    //MISSLE
-  //  0  One copy(X.........)
-  //  1  Two copies - close(X.X.......)
-  //  2  Two copies - medium(X...X.....)
-  //  3  Three copies - close(X.X.X.....)
-  //  4  Two copies - wide(X.......X.)
-  //  5  Double sized player(XX........)
-  //  6  Three copies - medium(X...X...X.)
-  //  7  Quad sized player(XXXX......)
+ 
     for (int n = 0;n < 2;n++) {
       if (MissleEnabled[n]  && !(ResetMissletoPlayerRegister[n] & 2)) {
 
@@ -714,26 +680,7 @@ if (Addr >= 0xF5C5 && Addr < 0xF64F)  {
 
 
   void Machine::DrawScanline() {
-
-    //Video Priority
-
-    //  See also CTRLPF.1 (SCORE), and CTRLPF.2 (PRIORITY)
-
-    //  Object Colors and Priorities
-    //  When pixels of two or more objects overlap each other, only the pixel of the object with topmost priority is drawn to the screen.The normal priority ordering is :
-    //Priority     Color    Objects
-    //  1 (highest)COLUP0   P0, M0(and left side of PF in SCORE - mode)
-    //  2            COLUP1   P1, M1(and right side of PF in SCORE - mode)
-    //  3            COLUPF   BL, PF(only BL in SCORE - mode)
-    //  4 (lowest)COLUBK   BK
-    //  Optionally, the playfieldand ball may be assigned to have higher priority(by setting CTRLPF.2).The priority ordering is then :
-    //Priority     Color    Objects
-    //  1 (highest)COLUPF   PF, BL(always, the SCORE - bit is ignored)
-    //  2            COLUP0   P0, M0
-    //  3            COLUP1   P1, M1
-    //  4 (lowest)COLUBK   BK
-    //  Objects of the same color are having the same priority(it makes no difference which pixel is drawn topmost if both pixels are having the same color).
-
+ 
   
 if (YCtr == 0) YPos = 0;
 
@@ -789,22 +736,7 @@ if (YCtr == 0) YPos = 0;
   };
   void  Machine::ResetHSyncCtr() {};
   void  Machine::SetNumSizPlrMsl(char n, unsigned char B) {
-    //These addresses control the numberand size of playersand missiles.
-      /*Bit  Expl.
-      0 - 2  Player - Missile number & Player size(See table below)
-      3    Not used ? ? ?
-      4 - 5  Missile Size(0..3 = 1, 2, 4, 8 pixels width)
-      6 - 7  Not used
-      Player - Missile number & player size(Picture shows shape, 8 pix per char)
-      0  One copy(X.........)
-      1  Two copies - close(X.X.......)
-      2  Two copies - medium(X...X.....)
-      3  Three copies - close(X.X.X.....)
-      4  Two copies - wide(X.......X.)
-      5  Double sized player(XX........)
-      6  Three copies - medium(X...X...X.)
-      7  Quad sized player(XXXX......)
-      1 / 2 television line(80 clocks), 8 clocks per character*/
+ 
     NumSizPlrMissle[n] = B;
   };
   void  Machine::SetColLumPlr(char n, unsigned char B) {
@@ -819,26 +751,12 @@ if (YCtr == 0) YPos = 0;
   };
 
   void  Machine::SetCtlPlyFld(unsigned char B) {
-  //CTRLPF
-  /*    D0 - (REF)reflect playfield, see above
-      D1 - (SCORE)left half of playfield gets color of player 0
-      right half gets color of player 1
-      D2 - (PFP)playfield gets priority over players so they move
-      behind playfield
-      D5, D4 - Ball Size       
-      if 00, 1 clock wide
-      if 01, 2 clocks wide
-      if 10, 4 clocks wide
-      if 11, 8 clocks wide*/
+ 
     ControlPlayFieldBallRegister = B;
   };
   void  Machine::ReflectPlayer(char n, unsigned char B) {
 
-    //Bit  Expl.
-    //  0 - 2  Not used
-    //  3    Reflect Player Graphics(0 = Normal / MSB first, 1 = Mirror / LSB first)
-    //  4 - 7  Not used
-    //  Used to mirror the GRP0 and GRP1 registers.
+ 
     PlayerReflected[n] = B;
   };
   void  Machine::SetPlayFieldRegisterBX(char n,unsigned char B) {
@@ -1322,20 +1240,7 @@ void Machine::GetNuSizeInfo(char n, char &Count, unsigned short &Space, unsigned
       return 0x0f;//TODO  0F??
 
     }
-  /*  30      CXM0P   11......read collision M0 - P1, M0 - P0(Bit 7, 6)
-      31      CXM1P   11......read collision M1 - P0, M1 - P1
-      32      CXP0FB  11......read collision P0 - PF, P0 - BL
-      33      CXP1FB  11......read collision P1 - PF, P1 - BL
-      34      CXM0FB  11......read collision M0 - PF, M0 - BL
-      35      CXM1FB  11......read collision M1 - PF, M1 - BL
-      36      CXBLPF  1.......  read collision BL - PF, unused
-      37      CXPPMM  11......read collision P0 - P1, M0 - M1
-      38      INPT0   1.......  read pot port
-      39      INPT1   1.......  read pot port
-      3A      INPT2   1.......  read pot port
-      3B      INPT3   1.......  read pot port
-      3C      INPT4   1.......  read input
-      3D      INPT5   1.......  read input*/
+ 
 
 
     return 0; 
@@ -1374,51 +1279,7 @@ void Machine::GetNuSizeInfo(char n, char &Count, unsigned short &Space, unsigned
     return 0xFF;
   };
   void Machine::WriteTIA(unsigned short Addr, unsigned char B) {
-  /*  00      VSYNC   ......1.  vertical sync set - clear
-      01      VBLANK  11....1.  vertical blank set - clear
-      02      WSYNC   <strobe>  wait for leading edge of horizontal blank
-      03      RSYNC   <strobe>  reset horizontal sync counter
-      04      NUSIZ0  ..111111  number - size player - missile 0
-      05      NUSIZ1  ..111111  number - size player - missile 1
-      06      COLUP0  1111111.  color - lum player 0 and missile 0
-      07      COLUP1  1111111.  color - lum player 1 and missile 1
-      08      COLUPF  1111111.  color - lum playfield and ball
-      09      COLUBK  1111111.  color - lum background
-      0A      CTRLPF  ..11.111  control playfield ball size & collisions
-      0B      REFP0   ....1...  reflect player 0
-      0C      REFP1   ....1...  reflect player 1
-      0D      PF0     1111....  playfield register byte 0
-      0E      PF1     11111111  playfield register byte 1
-      0F      PF2     11111111  playfield register byte 2
-      10      RESP0   <strobe>  reset player 0
-      11      RESP1   <strobe>  reset player 1
-      12      RESM0   <strobe>  reset missile 0
-      13      RESM1   <strobe>  reset missile 1
-      14      RESBL   <strobe>  reset ball
-      15      AUDC0   ....1111  audio control 0
-      16      AUDC1   ....1111  audio control 1
-      17      AUDF0   ...11111  audio frequency 0
-      18      AUDF1   ...11111  audio frequency 1
-      19      AUDV0   ....1111  audio volume 0
-      1A      AUDV1   ....1111  audio volume 1
-      1B      GRP0    11111111  graphics player 0
-      1C      GRP1    11111111  graphics player 1
-      1D      ENAM0   ......1.  graphics(enable) missile 0
-      1E      ENAM1   ......1.  graphics(enable) missile 1
-      1F      ENABL   ......1.  graphics(enable) ball
-      20      HMP0    1111....  horizontal motion player 0
-      21      HMP1    1111....  horizontal motion player 1
-      22      HMM0    1111....  horizontal motion missile 0
-      23      HMM1    1111....  horizontal motion missile 1
-      24      HMBL    1111....  horizontal motion ball
-      25      VDELP0  .......1  vertical delay player 0
-      26      VDELP1  .......1  vertical delay player 1
-      27      VDELBL  .......1  vertical delay ball
-      28      RESMP0  ......1.  reset missile 0 to player 0
-      29      RESMP1  ......1.  reset missile 1 to player 1
-      2A      HMOVE   <strobe>  apply horizontal motion
-      2B      HMCLR   <strobe>  clear horizontal motion registers
-      2C      CXCLR   <strobe>  clear collision latches*/
+ 
   };
    
 
