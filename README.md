@@ -10,3 +10,5 @@ There's not enough buttons so I'm using B as a shift.  Shift A is Start and Shif
 I don't plan on updating this project.
 
 
+*************  As of 4/2/2020 I've removed anything I didn't write so that I can license it as MIT.  So in it's current state this will not build or run.
+
